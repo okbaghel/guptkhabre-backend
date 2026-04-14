@@ -9,9 +9,9 @@ export const protect = (req, res, next) => {
   }
 
   // 2. from cookie
-  else if (req.cookies.token) {
-    token = req.cookies.token;
-  }
+  // else if (req.cookies.token) {
+  //   token = req.cookies.token;
+  // }
 
   if (!token) {
     return res.status(401).json({ msg: "Not authorized" });
