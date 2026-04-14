@@ -11,7 +11,7 @@ connectDB();
 
 const allowedOrigins = [
   "https://guptkhabre.vercel.app",
-  "https:guptkhabre.com",
+  "https://guptkhabre.com",
   "http://localhost:3000",
   "http://localhost:3001"
 ];
@@ -34,6 +34,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.set("trust proxy", 1);
 
 app.use("/api", routes);
 
