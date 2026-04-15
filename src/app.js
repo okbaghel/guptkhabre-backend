@@ -9,19 +9,29 @@ import cookieParser from 'cookie-parser'
 
 connectDB();
 
-// const allowedOrigins = [
-//   "https://guptkhabre.vercel.app",
-//   "https://guptkhabre.com",
-//   "http://localhost:3000",
-//   "http://localhost:3001"
-// ];
+const allowedOrigins = [
+  "https://guptkhabre.vercel.app",
+  "https://guptkhabre.com",
+  "https://guptkhabre-git-main-yogesh-baghels-projects.vercel.app/",
+  "http://localhost:3000",
+  "http://localhost:3001"
+];
 
 
 const app=express();
 
 
 app.use(cors({
-  origin: "https://guptkhabre.vercel.app",
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
