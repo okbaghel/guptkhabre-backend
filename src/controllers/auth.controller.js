@@ -6,43 +6,39 @@ import { generateToken } from "../utils/jwt.js";
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-   
 
-    // validation
     if (!email || !password) {
       return res.status(400).json({ msg: "Email & password required" });
     }
-   
 
     const admin = await Admin.findOne({ email });
-    
     if (!admin) {
       return res.status(400).json({ msg: "Email not found" });
     }
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Password mitchmatch" });
+      return res.status(400).json({ msg: "Password mismatch" });
     }
 
     const token = generateToken({ id: admin._id, role: "admin" });
+    const isProduction = process.env.NODE_ENV === "production";
 
-    // secure cookie (production ready)
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // true in production (HTTPS)
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      partitioned: isProduction,
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.json({
       success: true,
-      token,
       user: {
         id: admin._id,
         email: admin.email,
-        role:"admin"
-
+        role: "admin",
       },
     });
   } catch (err) {
@@ -54,6 +50,9 @@ export const login = async (req, res) => {
 export const getMe = async (req, res)=>{
   try{
     const admin = await Admin.findById(req.user.id).select("-password");
+    if (!admin) {
+      return res.status(404).json({ msg: "Admin not found" });
+    }
 
     res.json({
       success:true,

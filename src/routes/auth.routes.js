@@ -13,7 +13,14 @@ router.get("/me",protect, isAdmin ,getMe);
 router.put("/change-password", protect, isAdmin, changePassword);
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("token");
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    partitioned: isProduction,
+    path: "/",
+  });
   res.json({ success: true });
 });
 
