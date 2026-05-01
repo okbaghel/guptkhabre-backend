@@ -18,7 +18,7 @@ export const getPosts = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .select("title mediaUrl mediaType likes createdAt");
+    .select("title heading subheading mediaUrl mediaType likes createdAt");
 
   // const total = await Post.countDocuments();
 
@@ -40,8 +40,26 @@ res.json({
 // CREATE POST (ADMIN)
 
 
+export const getPostById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(400).json({ msg: "Invalid post ID" });
+  }
+
+  const post = await Post.findById(id).select(
+    "title heading subheading description mediaUrl mediaType likes createdAt"
+  );
+
+  if (!post) {
+    return res.status(404).json({ msg: "Post not found" });
+  }
+
+  res.json({ success: true, post });
+});
+
 export const createPost = asyncHandler(async (req, res) => {
-  const { title } = req.body;
+  const { title, heading, subheading, description } = req.body ?? {};
 
   if (!title) {
     return res.status(400).json({ msg: "Title is required" });
@@ -51,12 +69,8 @@ export const createPost = asyncHandler(async (req, res) => {
     return res.status(400).json({ msg: "Media file is required" });
   }
 
-  // 🔥 AUTO DETECT TYPE
-  const mediaType = req.file.mimetype.startsWith("video")
-    ? "video"
-    : "image";
+  const mediaType = req.file.mimetype.startsWith("video") ? "video" : "image";
 
-  // Upload to ImageKit
   const result = await imagekit.upload({
     file: req.file.buffer,
     fileName: `${Date.now()}-${req.file.originalname}`,
@@ -65,6 +79,9 @@ export const createPost = asyncHandler(async (req, res) => {
 
   const post = await Post.create({
     title,
+    heading,
+    subheading,
+    description,
     mediaUrl: result.url,
     mediaType,
     createdBy: req.user._id,
@@ -108,7 +125,7 @@ export const likePost = asyncHandler(async (req, res) => {
 
 export const updatePost = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title } = req.body;
+  const { title, heading, subheading, description } = req.body;
 
   const post = await Post.findById(id);
 
@@ -116,10 +133,10 @@ export const updatePost = asyncHandler(async (req, res) => {
     return res.status(404).json({ msg: "Post not found" });
   }
 
-  // Update title if provided
-  if (title) {
-    post.title = title;
-  }
+  if (title) post.title = title;
+  if (heading !== undefined) post.heading = heading;
+  if (subheading !== undefined) post.subheading = subheading;
+  if (description !== undefined) post.description = description;
 
   // If new file uploaded → replace media
   if (req.file) {

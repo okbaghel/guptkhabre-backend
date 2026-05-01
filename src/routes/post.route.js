@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getPosts,
+  getPostById,
   createPost,
   likePost,
   updatePost,
@@ -16,6 +17,9 @@ const router = express.Router();
 
 // Public feed
 router.get("/", getPosts);
+
+// Single post
+router.get("/:id", getPostById);
 
 // Admin upload (matches your UI)
 router.post("/", protect, isAdmin, upload.single("file"), createPost);

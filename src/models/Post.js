@@ -8,6 +8,21 @@ const postSchema = new mongoose.Schema(
       trim: true,
     },
 
+    heading: {
+      type: String,
+      trim: true,
+    },
+
+    subheading: {
+      type: String,
+      trim: true,
+    },
+
+    description: {
+      type: String,
+      trim: true,
+    },
+
     mediaUrl: {
       type: String,
       required: true,
