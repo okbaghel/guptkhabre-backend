@@ -49,4 +49,7 @@ const serviceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index: filter on isActive first (high selectivity), then sort by date
+serviceSchema.index({ isActive: 1, createdAt: -1 });
+
 export default mongoose.model("Service", serviceSchema);

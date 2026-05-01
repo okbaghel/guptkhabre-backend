@@ -43,6 +43,9 @@ const enquirySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index: admin list filters isActive then sorts by newest first
+enquirySchema.index({ isActive: 1, createdAt: -1 });
+
 const Enquiry = mongoose.model("Enquiry", enquirySchema);
 
 export default Enquiry;
