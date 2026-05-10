@@ -248,22 +248,36 @@ export const deletePost = asyncHandler(async (req, res) => {
 
 export const likePost = asyncHandler(async (req, res) => {
   const { id }    = req.params;
-  const ip        = req.ip;
-  const userAgent = req.headers["user-agent"];
+  const ip        = req.ip        || "unknown";
+  const userAgent = req.headers["user-agent"] || "";
+
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(400).json({ msg: "Invalid post ID" });
+  }
 
   const post = await Post.findById(id);
   if (!post) return res.status(404).json({ msg: "Post not found" });
 
-  const alreadyLiked = post.likedBy.some(
+  const alreadyLikedIndex = post.likedBy.findIndex(
     (u) => u.ip === ip && u.userAgent === userAgent
   );
-  if (alreadyLiked) return res.status(400).json({ msg: "Already liked" });
 
-  post.likes += 1;
-  post.likedBy.push({ ip, userAgent });
+  let liked;
+  if (alreadyLikedIndex !== -1) {
+    // Toggle off: remove entry and decrement (floor at 0)
+    post.likedBy.splice(alreadyLikedIndex, 1);
+    post.likes = Math.max(0, post.likes - 1);
+    liked = false;
+  } else {
+    // Toggle on: add entry and increment
+    post.likedBy.push({ ip, userAgent });
+    post.likes += 1;
+    liked = true;
+  }
+
   await post.save();
 
   await cacheDel(`post:${id}`);
 
-  res.json({ likes: post.likes });
+  res.json({ success: true, likes: post.likes, liked });
 });
