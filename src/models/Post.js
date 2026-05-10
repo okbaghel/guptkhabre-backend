@@ -46,6 +46,11 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
+    views: {
+      type: Number,
+      default: 0,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -54,7 +59,7 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// 🔥 IMPORTANT FOR PERFORMANCE
 postSchema.index({ createdAt: -1 });
+postSchema.index({ views: -1 });   // for "most viewed" admin queries
 
 export default mongoose.model("Post", postSchema);
